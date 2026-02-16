@@ -9,7 +9,7 @@ const getBaseURL = () => {
 
   // Fallback URLs (production domains)
   if (
-    window.location.hostname === "https://hotel-management-system-backend-reuj.onrender.com" ||
+    window.location.hostname.includes("hotel-management-system-backend-reuj.onrender.com") ||
     window.location.hostname.includes("vercel.app")
   ) {
     return "https://hotel-management-system-backend-reuj.onrender.com";
@@ -19,8 +19,8 @@ const getBaseURL = () => {
     return "http://localhost:5000";
   }
 
-  // Default to production (VPS backend)
-  return "https://hotel-management-system-backend-reuj.onrender.com/";
+  // Default to production (Render backend)
+  return "https://hotel-management-system-backend-reuj.onrender.com";
 };
 
 export const getApiBaseUrl = getBaseURL;
@@ -47,7 +47,12 @@ axiosInstance.interceptors.request.use((config: CustomAxiosRequestConfig) => {
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-    console.log("Using JWT token from localStorage for authentication");
+    console.log(
+      "✅ JWT token added to request headers for",
+      config.url?.split("?")[0]
+    );
+  } else {
+    console.warn("⚠️  No JWT token found in localStorage for", config.url?.split("?")[0]);
   }
 
   // Add retry count to track retries
@@ -61,12 +66,25 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const { config } = error;
+    const urlPath = config?.url?.split("?")[0] || "unknown";
 
     // Handle 401 errors by clearing session
     if (error.response?.status === 401) {
+      console.error("❌ 401 Unauthorized on", urlPath, {
+        data: error.response?.data,
+        token: localStorage.getItem("session_id") ? "exists" : "missing",
+      });
       Cookies.remove("session_id");
       localStorage.removeItem("session_id");
       // Don't redirect automatically - let components handle it
+    }
+
+    // Handle 500 errors - log details
+    if (error.response?.status === 500) {
+      console.error("❌ 500 Server Error on", urlPath, {
+        message: error.response?.data?.message,
+        details: error.response?.data?.details,
+      });
     }
 
     // Handle rate limiting (429) with retry logic
@@ -81,6 +99,7 @@ axiosInstance.interceptors.response.use(
           const delay =
             Math.pow(2, customConfig.metadata.retryCount - 1) * 1000;
 
+          console.warn(`⚠️  Rate limited on ${urlPath}, retrying in ${delay}ms`);
           await new Promise((resolve) => setTimeout(resolve, delay));
 
           return axiosInstance(config);
@@ -96,6 +115,7 @@ axiosInstance.interceptors.response.use(
         if (customConfig.metadata) {
           customConfig.metadata.retryCount += 1;
 
+          console.warn(`⚠️  Network error on ${urlPath}, retrying...`);
           // Wait 2 seconds before retry
           await new Promise((resolve) => setTimeout(resolve, 2000));
 
