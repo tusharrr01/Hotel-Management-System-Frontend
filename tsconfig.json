@@ -17,7 +17,7 @@
     /* Path aliases */
     "baseUrl": ".",
     "paths": {
-      "@shared/types": ["../shared/types.ts"]
+      "@shared/types": ["src/shared/types.ts"]
     },
 
     /* Linting */

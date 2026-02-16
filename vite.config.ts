@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@shared/types": resolve(__dirname, "../shared/types.ts"),
+      "@shared/types": resolve(__dirname, "src/shared/types.ts"),
     },
   },
   // Dev proxy: forward `/api` calls to backend when running `vite` locally.
@@ -14,7 +14,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: process.env.BACKEND_URL || "http://localhost:5000",
+        target: process.env.BACKEND_URL || "https://hotel-management-system-backend-reuj.onrender.com/",
         changeOrigin: true,
         secure: false,
       },

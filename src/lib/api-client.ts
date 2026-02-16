@@ -9,10 +9,10 @@ const getBaseURL = () => {
 
   // Fallback URLs (production domains)
   if (
-    window.location.hostname === "mern-booking-hotel.netlify.app" ||
+    window.location.hostname === "https://hotel-management-system-backend-reuj.onrender.com" ||
     window.location.hostname.includes("vercel.app")
   ) {
-    return "https://hotel-booking-backend.duckdns.org";
+    return "https://hotel-management-system-backend-reuj.onrender.com";
   }
 
   if (window.location.hostname === "localhost") {
@@ -20,7 +20,7 @@ const getBaseURL = () => {
   }
 
   // Default to production (VPS backend)
-  return "https://hotel-booking-backend.duckdns.org";
+  return "https://hotel-management-system-backend-reuj.onrender.com/";
 };
 
 export const getApiBaseUrl = getBaseURL;
